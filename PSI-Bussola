@@ -306,7 +306,6 @@
             };
 
             console.log("Payload enviado:", payload);
-
            
 const webhookUrl = "https://script.google.com/macros/s/AKfycbwzDKSQlf4BppvGX83gV3zDMHahAyyK0h2AfRvvfALScdF201ZggDhlaGXqPO7GSwDo/exec"; 
 
