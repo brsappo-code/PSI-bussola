@@ -307,8 +307,8 @@
 
             console.log("Payload enviado:", payload);
 
-            // Insira aqui a URL do seu webhook do n8n que popula a planilha PSI-Bússola
-            const webhookUrl = "SUA_URL_DO_WEBHOOK_N8N_AQUI"; 
+           
+const webhookUrl = "https://script.google.com/macros/s/AKfycbwzDKSQlf4BppvGX83gV3zDMHahAyyK0h2AfRvvfALScdF201ZggDhlaGXqPO7GSwDo/exec"; 
 
             try {
                 if (webhookUrl !== "SUA_URL_DO_WEBHOOK_N8N_AQUI") {
