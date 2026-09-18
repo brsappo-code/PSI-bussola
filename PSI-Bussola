@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bússola Emocional | Dra. Amanda Ponzi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        psi: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            rose: '#f43f5e',
+                            gold: '#fbbf24',
+                            success: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-gentle {
+            0% { transform: scale(0.98); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.85; }
+        }
+        .breathing-box {
+            animation: pulse-gentle 6s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+
+    <!-- Header Institucional -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 shadow-sm">
+        <div class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-rose-500/20 text-rose-400 p-2.5 rounded-xl border border-rose-500/30 shadow-inner">
+                    <i class="fa-solid fa-brain text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xs font-extrabold tracking-widest text-white uppercase">BÚSSOLA EMOCIONAL</h1>
+                    <p class="text-[11px] text-rose-400 font-semibold tracking-wider">@psi.amandaponzi</p>
+                </div>
+            </div>
+            <span class="text-xs bg-slate-800/80 text-slate-300 px-3 py-1 rounded-full font-mono border border-slate-700/50" id="current-date">--/--</span>
+        </div>
+    </header>
+
+    <!-- Navegação por Abas -->
+    <nav class="max-w-md w-full mx-auto px-4 pt-3.5">
+        <div class="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-xs font-bold shadow-inner">
+            <button onclick="switchTab('diaria')" id="btn-diaria" class="tab-btn py-2.5 rounded-lg transition-all bg-rose-600 text-white shadow-md flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-compass"></i> Diário
+            </button>
+            <button onclick="switchTab('ancoragem')" id="btn-ancoragem" class="tab-btn py-2.5 rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-wind"></i> Ancoragem
+            </button>
+            <button onclick="switchTab('sobre')" id="btn-sobre" class="tab-btn py-2.5 rounded-lg transition-all text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-user-doctor"></i> Contato
+            </button>
+        </div>
+    </nav>
+
+    <!-- Container Principal -->
+    <main class="flex-grow max-w-md w-full mx-auto p-4 space-y-4">
+
+        <!-- TAB 1: DIÁRIO EMOCIONAL (Alinhado à Planilha PSI-Bússola) -->
+        <section id="tab-diaria" class="tab-content space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+                <div class="mb-4 pb-3 border-b border-slate-800">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-rose-500"></i> Registro de Monitoramento
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Mapeie seus sentimentos, gatilhos e estratégias atuais.</p>
+                </div>
+
+                <form id="form-diario" onsubmit="enviarDiario(event)" class="space-y-4">
+                    
+                    <!-- Período -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Período do Registro</label>
+                        <select id="periodo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                            <option value="Manhã">☀️ Manhã</option>
+                            <option value="Tarde" selected>🌤️ Tarde</option>
+                            <option value="Noite">🌙 Noite</option>
+                            <option value="Crise Aguda (Fora de hora)">⚡ Crise Aguda (Fora de hora)</option>
+                        </select>
+                    </div>
+
+                    <!-- Sliders Clínicos (1 a 5) -->
+                    <div class="grid grid-cols-1 gap-3.5 bg-slate-950 p-4 rounded-xl border border-slate-800/80 shadow-inner">
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-300">Ansiedade (1-5)</span>
+                                <span id="val-ansiedade" class="text-rose-400 font-mono">3/5</span>
+                            </div>
+                            <input type="range" min="1" max="5" value="3" id="ansiedade" oninput="updateVal('ansiedade', this.value)" class="w-full accent-rose-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-300">Humor / Energia (1-5)</span>
+                                <span id="val-humor" class="text-emerald-400 font-mono">3/5</span>
+                            </div>
+                            <input type="range" min="1" max="5" value="3" id="humor" oninput="updateVal('humor', this.value)" class="w-full accent-emerald-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-300">Estresse (1-5)</span>
+                                <span id="val-estresse" class="text-amber-400 font-mono">3/5</span>
+                            </div>
+                            <input type="range" min="1" max="5" value="3" id="estresse" oninput="updateVal('estresse', this.value)" class="w-full accent-amber-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                        </div>
+                    </div>
+
+                    <!-- Gatilho Principal -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Gatilho Principal</label>
+                        <select id="gatilho" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                            <option value="Trabalho / Estudos">💼 Trabalho / Estudos</option>
+                            <option value="Família / Relacionamentos">🏠 Família / Relacionamentos</option>
+                            <option value="Finanças">💰 Finanças</option>
+                            <option value="Saúde / Corpo">🩺 Saúde / Corpo</option>
+                            <option value="Preocupação com o Futuro">💭 Preocupação com o Futuro</option>
+                            <option value="Sem motivo aparente">🧩 Sem motivo aparente</option>
+                        </select>
+                    </div>
+
+                    <!-- Sintomas Físicos -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Sintoma Físico Predominante</label>
+                        <select id="sintoma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                            <option value="Nenhum sintoma físico">✨ Nenhum sintoma físico</option>
+                            <option value="Aperto no peito / Falta de ar">🫁 Aperto no peito / Falta de ar</option>
+                            <option value="Coração acelerado (Taquicardia)">💓 Coração acelerado (Taquicardia)</option>
+                            <option value="Nó na garganta / Tensão muscular">🧘‍♂️ Nó na garganta / Tensão muscular</option>
+                            <option value="Mente acelerada (Pensamentos a mil)">🌪️ Mente acelerada (Pensamentos a mil)</option>
+                        </select>
+                    </div>
+
+                    <!-- Estratégia de Enfrentamento -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Estratégia de Enfrentamento</label>
+                        <select id="estrategia" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                            <option value="Técnica de Respiração / Ancoragem">🌬️ Técnica de Respiração / Ancoragem</option>
+                            <option value="Mudei de ambiente / Fui caminhar">🚶‍♀️ Mudei de ambiente / Fui caminhar</option>
+                            <option value="Conversei com alguém de confiança">💬 Conversei com alguém</option>
+                            <option value="Distração (Música, série, jogo)">🎧 Distração (Música, série)</option>
+                            <option value="Paralisi / Evitei a situação">🛡️ Paralisei / Evitei a situação</option>
+                        </select>
+                    </div>
+
+                    <!-- Pensamento / Notas -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Pensamento / Notas (Opcional)</label>
+                        <textarea id="notas" rows="2" placeholder="O que passou pela sua cabeça neste momento?" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-rose-500 resize-none transition-colors"></textarea>
+                    </div>
+
+                    <!-- Botão de Ação Principal (Dourado Matte - 10% de destaque da identidade visual) -->
+                    <button type="submit" id="btn-submit" class="w-full bg-amber-400 hover:bg-amber-300 active:scale-[0.99] text-slate-950 font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-400/20 text-sm tracking-wide">
+                        Registrar na Bússola 🎯
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 2: ANCORAGEM (Laboratório de Respiração) -->
+        <section id="tab-ancoragem" class="tab-content hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 text-center space-y-5 shadow-xl">
+                <div>
+                    <h2 class="text-base font-bold text-white flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lungs text-rose-400"></i> Laboratório de Calma
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Sincronize sua respiração para regular o sistema nervoso.</p>
+                </div>
+
+                <div class="flex justify-center my-6">
+                    <div class="w-40 h-40 rounded-full bg-rose-500/10 border-2 border-rose-500/40 flex flex-col items-center justify-center breathing-box shadow-xl shadow-rose-500/10">
+                        <span id="breathing-text" class="text-xs font-bold uppercase tracking-wider text-rose-300">Inspira...</span>
+                        <span id="breathing-timer" class="text-2xl font-mono font-bold text-white mt-1">4s</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-left space-y-2.5">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Técnica de Aterramento 5-4-3-2-1</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Identifique mentalmente ao seu redor:<br>
+                        • <b class="text-white">5</b> coisas que você vê<br>
+                        • <b class="text-white">4</b> coisas que pode tocar<br>
+                        • <b class="text-white">3</b> sons que ouve<br>
+                        • <b class="text-white">2</b> cheiros que sente<br>
+                        • <b class="text-white">1</b> sabor presente.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CONTATO E PERFIL PROFISSIONAL -->
+        <section id="tab-sobre" class="tab-content hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+                <div class="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto border border-rose-500/30 text-rose-400 text-xl font-extrabold shadow-inner">
+                    AP
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-white">Dra. Amanda Ponzi</h2>
+                    <p class="text-xs text-rose-400 font-semibold mt-0.5">Psicóloga Clínica • CRP Ativo</p>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed px-1">
+                    Este WebApp auxilia no acompanhamento terapêutico contínuo, transformando seus registros diários em direcionamentos valiosos para as sessões.
+                </p>
+                <a href="https://wa.me/" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-400/20">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> Falar com a Psicóloga
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="text-center py-4 text-[10px] text-slate-500 border-t border-slate-900 font-mono">
+        Bússola Emocional • Protegido por Sigilo Profissional
+    </footer>
+
+    <!-- Lógica JavaScript & Conexão com Webhook / Planilha -->
+    <script>
+        // Data atual no cabeçalho
+        const options = { weekday: 'short', day: 'numeric', month: 'short' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', options);
+
+        // Função de alternância de abas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-rose-600', 'text-white', 'shadow-md');
+                el.classList.add('text-slate-400');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-rose-600', 'text-white', 'shadow-md');
+        }
+
+        // Atualização dos valores visuais dos sliders numéricos
+        function updateVal(id, val) {
+            document.getElementById('val-' + id).innerText = val + '/5';
+        }
+
+        // Identificação automática (Telegram WebApp SDK ou fallback em localStorage)
+        function getUserInfo() {
+            const tg = window.Telegram?.WebApp;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                return {
+                    nome: tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? ' ' + tg.initDataUnsafe.user.last_name : ''),
+                    chatId: tg.initDataUnsafe.user.id.toString()
+                };
+            }
+            let localId = localStorage.getItem('psi_chatid');
+            let localName = localStorage.getItem('psi_nome');
+            if (!localId) {
+                localId = 'web_' + Math.floor(Math.random() * 1000000);
+                localStorage.setItem('psi_chatid', localId);
+            }
+            if (!localName) {
+                localName = prompt("Digite seu primeiro nome para salvar os registros na Bússola:") || "Paciente Web";
+                localStorage.setItem('psi_nome', localName);
+            }
+            return { nome: localName, chatId: localId };
+        }
+
+        // Envio do formulário mapeando colunas exatas da planilha PSI-Bússola
+        async function enviarDiario(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerText = "Salvando registro...";
+
+            const user = getUserInfo();
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR');
+            const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            const payload = {
+                data: dataFormatada,
+                horario: horaFormatada,
+                nome: user.nome,
+                chatId: user.chatId,
+                periodo: document.getElementById('periodo').value,
+                ansiedade: document.getElementById('ansiedade').value,
+                humor: document.getElementById('humor').value,
+                estresse: document.getElementById('estresse').value,
+                gatilho: document.getElementById('gatilho').value,
+                sintoma: document.getElementById('sintoma').value,
+                estrategia: document.getElementById('estrategia').value,
+                notas: document.getElementById('notas').value
+            };
+
+            console.log("Payload enviado:", payload);
+
+            // Insira aqui a URL do seu webhook do n8n que popula a planilha PSI-Bússola
+            const webhookUrl = "SUA_URL_DO_WEBHOOK_N8N_AQUI"; 
+
+            try {
+                if (webhookUrl !== "SUA_URL_DO_WEBHOOK_N8N_AQUI") {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+                alert("✨ Registro salvo com sucesso na sua Bússola Emocional!");
+                document.getElementById('form-diario').reset();
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao enviar o registro. Tente novamente.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Registrar na Bússola 🎯";
+            }
+        }
+
+        // Ciclo do laboratório de respiração guiada
+        let breathStep = 0;
+        const steps = [
+            { text: "Inspira...", time: 4, color: "text-rose-300" },
+            { text: "Segura...", time: 4, color: "text-amber-300" },
+            { text: "Expira...", time: 4, color: "text-emerald-300" },
+            { text: "Pausa...", time: 2, color: "text-slate-300" }
+        ];
+
+        function runBreathing() {
+            const current = steps[breathStep];
+            const textEl = document.getElementById('breathing-text');
+            const timerEl = document.getElementById('breathing-timer');
+            if (textEl && timerEl) {
+                textEl.innerText = current.text;
+                textEl.className = "text-xs font-bold uppercase tracking-wider " + current.color;
+                timerEl.innerText = current.time + "s";
+            }
+            breathStep = (breathStep + 1) % steps.length;
+        }
+        setInterval(runBreathing, 4000);
+    </script>
+</body>
+</html>
