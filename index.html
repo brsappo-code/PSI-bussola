@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,16 +9,17 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        psi: {
-                            bg: '#020617',     // slate-950 (Fundo oficial do site)
-                            card: '#0f172a',   // slate-900 (Cartões)
-                            rose: '#f43f5e',   // Quartz Rose / rose-500
-                            gold: '#fbbf24',   // Matte Amber (CTAs de conversão)
-                            goldHover: '#f59e0b'
+                        pastel: {
+                            bg: '#fdfbf7',       // Bege linho pastel muito suave (fundo)
+                            card: '#ffffff',     // Branco puro para os cartões
+                            roseSoft: '#fff1f2', // Rosa pastel leve para blocos internos
+                            roseBorder: '#fecdd3', // Borda rosa pastel delicada
+                            roseMain: '#e11d48', // Quartz Rose elegante para destaques/abas
+                            beigeSoft: '#f5f0eb',// Bege pastel complementar
+                            gold: '#d97706',     // Dourado Matte para CTAs
                         }
                     },
                     fontFamily: {
@@ -40,34 +41,34 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-[#fdfbf7] text-stone-800 min-h-screen flex flex-col font-sans antialiased">
 
-    <!-- Header Institucional -->
-    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <!-- Header Institucional com toque pastel/rosa -->
+    <header class="border-b border-rose-100 bg-white/90 backdrop-blur sticky top-0 z-50 shadow-xs">
         <div class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-rose-500/10 text-rose-500 p-2.5 rounded-xl border border-rose-500/20">
+                <div class="bg-rose-50 text-rose-600 p-2.5 rounded-2xl border border-rose-200/60 shadow-xs">
                     <i class="fa-solid fa-brain text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-xs font-extrabold tracking-widest text-slate-100 uppercase">BÚSSOLA EMOCIONAL</h1>
-                    <p class="text-[11px] text-rose-500 font-semibold tracking-wider">@psi.amandaponzi</p>
+                    <h1 class="text-xs font-extrabold tracking-widest text-stone-900 uppercase">BÚSSOLA EMOCIONAL</h1>
+                    <p class="text-[11px] text-rose-600 font-semibold tracking-wider">@psi.amandaponzi</p>
                 </div>
             </div>
-            <span class="text-xs bg-slate-900 text-slate-400 px-3 py-1 rounded-full font-mono border border-slate-800" id="current-date">--/--</span>
+            <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-mono border border-rose-100" id="current-date">--/--</span>
         </div>
     </header>
 
-    <!-- Navegação por Abas -->
+    <!-- Navegação por Abas em Tons Pastéis -->
     <nav class="max-w-md w-full mx-auto px-4 pt-4">
-        <div class="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-xs font-bold">
-            <button onclick="switchTab('diaria')" id="btn-diaria" class="tab-btn py-2.5 rounded-lg transition-all bg-rose-600 text-white shadow-md flex items-center justify-center gap-1.5">
+        <div class="grid grid-cols-3 gap-2 bg-[#f5f0eb] p-1.5 rounded-2xl border border-stone-200/60 text-xs font-bold">
+            <button onclick="switchTab('diaria')" id="btn-diaria" class="tab-btn py-2.5 rounded-xl transition-all bg-rose-600 text-white shadow-xs flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-compass"></i> Diário
             </button>
-            <button onclick="switchTab('ancoragem')" id="btn-ancoragem" class="tab-btn py-2.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
+            <button onclick="switchTab('ancoragem')" id="btn-ancoragem" class="tab-btn py-2.5 rounded-xl transition-all text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-wind"></i> Ancoragem
             </button>
-            <button onclick="switchTab('sobre')" id="btn-sobre" class="tab-btn py-2.5 rounded-lg transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
+            <button onclick="switchTab('sobre')" id="btn-sobre" class="tab-btn py-2.5 rounded-xl transition-all text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-user-doctor"></i> Contato
             </button>
         </div>
@@ -78,20 +79,20 @@
 
         <!-- TAB 1: DIÁRIO EMOCIONAL -->
         <section id="tab-diaria" class="tab-content space-y-4">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div class="mb-4 pb-3 border-b border-slate-800">
-                    <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-check text-rose-500"></i> Registro de Monitoramento
+            <div class="bg-white border border-rose-100/80 rounded-2xl p-5 shadow-sm">
+                <div class="mb-4 pb-3 border-b border-stone-100">
+                    <h2 class="text-sm font-bold text-stone-900 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-rose-600"></i> Registro de Monitoramento
                     </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Mapeie seus sentimentos, gatilhos e estratégias atuais.</p>
+                    <p class="text-xs text-stone-500 mt-0.5">Mapeie seus sentimentos, gatilhos e estratégias atuais.</p>
                 </div>
 
                 <form id="form-diario" onsubmit="enviarDiario(event)" class="space-y-4">
                     
                     <!-- Período -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Período do Registro</label>
-                        <select id="periodo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Período do Registro</label>
+                        <select id="periodo" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400 transition-colors">
                             <option value="Manhã">☀️ Manhã</option>
                             <option value="Tarde" selected>🌤️ Tarde</option>
                             <option value="Noite">🌙 Noite</option>
@@ -99,35 +100,35 @@
                         </select>
                     </div>
 
-                    <!-- Sliders Clínicos (1 a 5) -->
-                    <div class="grid grid-cols-1 gap-3.5 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <!-- Sliders Clínicos em Bloco Rosa Pastel Suave -->
+                    <div class="grid grid-cols-1 gap-3.5 bg-[#fff1f2]/60 p-4 rounded-xl border border-rose-100">
                         <div>
                             <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-slate-300">Ansiedade (1-5)</span>
-                                <span id="val-ansiedade" class="text-rose-500 font-mono font-bold">3/5</span>
+                                <span class="text-stone-700">Ansiedade (1-5)</span>
+                                <span id="val-ansiedade" class="text-rose-600 font-mono font-bold">3/5</span>
                             </div>
-                            <input type="range" min="1" max="5" value="3" id="ansiedade" oninput="updateVal('ansiedade', this.value)" class="w-full accent-rose-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                            <input type="range" min="1" max="5" value="3" id="ansiedade" oninput="updateVal('ansiedade', this.value)" class="w-full accent-rose-600 bg-rose-100 rounded-lg cursor-pointer h-2">
                         </div>
                         <div>
                             <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-slate-300">Humor / Energia (1-5)</span>
-                                <span id="val-humor" class="text-emerald-400 font-mono font-bold">3/5</span>
+                                <span class="text-stone-700">Humor / Energia (1-5)</span>
+                                <span id="val-humor" class="text-emerald-600 font-mono font-bold">3/5</span>
                             </div>
-                            <input type="range" min="1" max="5" value="3" id="humor" oninput="updateVal('humor', this.value)" class="w-full accent-emerald-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                            <input type="range" min="1" max="5" value="3" id="humor" oninput="updateVal('humor', this.value)" class="w-full accent-emerald-600 bg-rose-100 rounded-lg cursor-pointer h-2">
                         </div>
                         <div>
                             <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-slate-300">Estresse (1-5)</span>
-                                <span id="val-estresse" class="text-amber-400 font-mono font-bold">3/5</span>
+                                <span class="text-stone-700">Estresse (1-5)</span>
+                                <span id="val-estresse" class="text-amber-600 font-mono font-bold">3/5</span>
                             </div>
-                            <input type="range" min="1" max="5" value="3" id="estresse" oninput="updateVal('estresse', this.value)" class="w-full accent-amber-500 bg-slate-800 rounded-lg cursor-pointer h-2">
+                            <input type="range" min="1" max="5" value="3" id="estresse" oninput="updateVal('estresse', this.value)" class="w-full accent-amber-600 bg-rose-100 rounded-lg cursor-pointer h-2">
                         </div>
                     </div>
 
                     <!-- Gatilho Principal -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Gatilho Principal</label>
-                        <select id="gatilho" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Gatilho Principal</label>
+                        <select id="gatilho" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400 transition-colors">
                             <option value="Trabalho / Estudos">💼 Trabalho / Estudos</option>
                             <option value="Família / Relacionamentos">🏠 Família / Relacionamentos</option>
                             <option value="Finanças">💰 Finanças</option>
@@ -139,8 +140,8 @@
 
                     <!-- Sintomas Físicos -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Sintoma Físico Predominante</label>
-                        <select id="sintoma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Sintoma Físico Predominante</label>
+                        <select id="sintoma" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400 transition-colors">
                             <option value="Nenhum sintoma físico">✨ Nenhum sintoma físico</option>
                             <option value="Aperto no peito / Falta de ar">🫁 Aperto no peito / Falta de ar</option>
                             <option value="Coração acelerado (Taquicardia)">💓 Coração acelerado (Taquicardia)</option>
@@ -151,8 +152,8 @@
 
                     <!-- Estratégia de Enfrentamento -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Estratégia de Enfrentamento</label>
-                        <select id="estrategia" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-rose-500 transition-colors">
+                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Estratégia de Enfrentamento</label>
+                        <select id="estrategia" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400 transition-colors">
                             <option value="Técnica de Respiração / Ancoragem">🌬️ Técnica de Respiração / Ancoragem</option>
                             <option value="Mudei de ambiente / Fui caminhar">🚶‍♀️ Mudei de ambiente / Fui caminhar</option>
                             <option value="Conversei com alguém de confiança">💬 Conversei com alguém</option>
@@ -163,44 +164,44 @@
 
                     <!-- Pensamento / Notas -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Pensamento / Notas (Opcional)</label>
-                        <textarea id="notas" rows="2" placeholder="O que passou pela sua cabeça neste momento?" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 focus:outline-none focus:border-rose-500 resize-none transition-colors"></textarea>
+                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Pensamento / Notas (Opcional)</label>
+                        <textarea id="notas" rows="2" placeholder="O que passou pela sua cabeça neste momento?" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl p-3 text-sm text-stone-800 focus:outline-none focus:border-rose-400 resize-none transition-colors"></textarea>
                     </div>
 
-                    <!-- Botão de Ação Principal (Matte Amber #fbbf24 do site) -->
-                    <button type="submit" id="btn-submit" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-slate-950 font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/10 text-sm tracking-wide">
+                    <!-- Botão de Ação Principal (Dourado Matte Elegante) -->
+                    <button type="submit" id="btn-submit" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide">
                         Registrar na Bússola 🎯
                     </button>
                 </form>
             </div>
         </section>
 
-        <!-- TAB 2: ANCORAGEM -->
+        <!-- TAB 2: ANCORAGEM (Laboratório de Respiração) -->
         <section id="tab-ancoragem" class="tab-content hidden space-y-4">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 text-center space-y-5 shadow-xl">
+            <div class="bg-white border border-rose-100/80 rounded-2xl p-6 text-center space-y-5 shadow-sm">
                 <div>
-                    <h2 class="text-base font-bold text-slate-100 flex items-center justify-center gap-2">
+                    <h2 class="text-base font-bold text-stone-900 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-lungs text-rose-500"></i> Laboratório de Calma
                     </h2>
-                    <p class="text-xs text-slate-400 mt-1">Sincronize sua respiração para regular o sistema nervoso.</p>
+                    <p class="text-xs text-stone-500 mt-1">Sincronize sua respiração para regular o sistema nervoso.</p>
                 </div>
 
                 <div class="flex justify-center my-6">
-                    <div class="w-40 h-40 rounded-full bg-rose-500/10 border-2 border-rose-500/30 flex flex-col items-center justify-center breathing-box shadow-lg shadow-rose-500/5">
-                        <span id="breathing-text" class="text-xs font-bold uppercase tracking-wider text-rose-400">Inspira...</span>
-                        <span id="breathing-timer" class="text-2xl font-mono font-bold text-slate-100 mt-1">4s</span>
+                    <div class="w-40 h-40 rounded-full bg-rose-50 border-2 border-rose-200 flex flex-col items-center justify-center breathing-box shadow-md shadow-rose-100">
+                        <span id="breathing-text" class="text-xs font-bold uppercase tracking-wider text-rose-600">Inspira...</span>
+                        <span id="breathing-timer" class="text-2xl font-mono font-bold text-stone-800 mt-1">4s</span>
                     </div>
                 </div>
 
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-left space-y-2.5">
-                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide">Técnica de Aterramento 5-4-3-2-1</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">
+                <div class="bg-[#fff1f2]/50 p-4 rounded-xl border border-rose-100 text-left space-y-2.5">
+                    <h3 class="text-xs font-bold text-rose-700 uppercase tracking-wide">Técnica de Aterramento 5-4-3-2-1</h3>
+                    <p class="text-xs text-stone-600 leading-relaxed">
                         Identifique mentalmente ao seu redor:<br>
-                        • <b class="text-slate-100">5</b> coisas que você vê<br>
-                        • <b class="text-slate-100">4</b> coisas que pode tocar<br>
-                        • <b class="text-slate-100">3</b> sons que ouve<br>
-                        • <b class="text-slate-100">2</b> cheiros que sente<br>
-                        • <b class="text-slate-100">1</b> sabor presente.
+                        • <b class="text-stone-800">5</b> coisas que você vê<br>
+                        • <b class="text-stone-800">4</b> coisas que pode tocar<br>
+                        • <b class="text-stone-800">3</b> sons que ouve<br>
+                        • <b class="text-stone-800">2</b> cheiros que sente<br>
+                        • <b class="text-stone-800">1</b> sabor presente.
                     </p>
                 </div>
             </div>
@@ -208,18 +209,18 @@
 
         <!-- TAB 3: CONTATO E PERFIL PROFISSIONAL -->
         <section id="tab-sobre" class="tab-content hidden space-y-4">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 text-center space-y-4 shadow-xl">
-                <div class="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto border border-rose-500/30 text-rose-500 text-xl font-extrabold shadow-md">
+            <div class="bg-white border border-rose-100/80 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+                <div class="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto border border-rose-200 text-rose-600 text-xl font-extrabold shadow-xs">
                     AP
                 </div>
                 <div>
-                    <h2 class="text-base font-bold text-slate-100">Dra. Amanda Ponzi</h2>
-                    <p class="text-xs text-rose-500 font-semibold mt-0.5">Psicóloga Clínica • CRP Ativo</p>
+                    <h2 class="text-base font-bold text-stone-900">Dra. Amanda Ponzi</h2>
+                    <p class="text-xs text-rose-600 font-semibold mt-0.5">Psicóloga Clínica • CRP Ativo</p>
                 </div>
-                <p class="text-xs text-slate-300 leading-relaxed px-1">
+                <p class="text-xs text-stone-600 leading-relaxed px-1">
                     Este WebApp auxilia no acompanhamento terapêutico contínuo, transformando seus registros diários em direcionamentos valiosos para as sessões.
                 </p>
-                <a href="https://wa.me/" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-[#fbbf24] hover:bg-[#f59e0b] text-slate-950 text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/10">
+                <a href="https://wa.me/" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-[#fbbf24] hover:bg-[#f59e0b] text-stone-900 text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10">
                     <i class="fa-brands fa-whatsapp text-sm"></i> Falar com a Psicóloga
                 </a>
             </div>
@@ -228,7 +229,7 @@
     </main>
 
     <!-- Rodapé -->
-    <footer class="text-center py-4 text-[10px] text-slate-500 border-t border-slate-900 font-mono">
+    <footer class="text-center py-4 text-[10px] text-stone-400 border-t border-stone-200 font-mono">
         Bússola Emocional • Protegido por Sigilo Profissional
     </footer>
 
@@ -240,13 +241,13 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-rose-600', 'text-white', 'shadow-md');
-                el.classList.add('text-slate-400');
+                el.classList.remove('bg-rose-600', 'text-white', 'shadow-xs');
+                el.classList.add('text-stone-600');
             });
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.remove('text-slate-400');
-            activeBtn.classList.add('bg-rose-600', 'text-white', 'shadow-md');
+            activeBtn.classList.remove('text-stone-600');
+            activeBtn.classList.add('bg-rose-600', 'text-white', 'shadow-xs');
         }
 
         function updateVal(id, val) {
@@ -322,10 +323,10 @@
 
         let breathStep = 0;
         const steps = [
-            { text: "Inspira...", time: 4, color: "text-rose-400" },
-            { text: "Segura...", time: 4, color: "text-amber-400" },
-            { text: "Expira...", time: 4, color: "text-emerald-400" },
-            { text: "Pausa...", time: 2, color: "text-slate-400" }
+            { text: "Inspira...", time: 4, color: "text-rose-600" },
+            { text: "Segura...", time: 4, color: "text-amber-600" },
+            { text: "Expira...", time: 4, color: "text-emerald-600" },
+            { text: "Pausa...", time: 2, color: "text-stone-600" }
         ];
 
         function runBreathing() {
