@@ -1,552 +1,63 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bússola Emocional | Dra. Amanda Ponzi</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        pastel: {
-                            bg: '#fdfbf7',       // Bege linho pastel suave
-                            card: '#ffffff',     // Branco puro para os cartões
-                            roseSoft: '#fff1f2', // Rosa pastel leve
-                            roseBorder: '#fecdd3', // Borda rosa pastel
-                            roseMain: '#e11d48', // Quartz Rose elegante
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', -apple-system, 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @keyframes pulse-gentle {
-            0% { transform: scale(0.98); opacity: 0.85; }
-            50% { transform: scale(1.03); opacity: 1; }
-            100% { transform: scale(0.98); opacity: 0.85; }
-        }
-        .breathing-box {
-            animation: pulse-gentle 6s infinite ease-in-out;
-        }
+function exibirResumoPaciente() {
+    const chatIdSelecionado = document.getElementById('select-paciente').value;
+    const cardResumo = document.getElementById('paciente-resumo-card');
+    const detalhesDiv = document.getElementById('resumo-detalhes');
 
-        /* Animação de respiração suave para o Botão PSI */
-        @keyframes psi-breathing {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.2); }
-            50% { transform: scale(1.08); box-shadow: 0 0 12px 3px rgba(225, 29, 72, 0.25); }
-        }
-        .psi-breathing {
-            animation: psi-breathing 4s infinite ease-in-out;
-        }
-    </style>
-</head>
-<body class="bg-[#fdfbf7] text-stone-800 min-h-screen flex flex-col font-sans antialiased">
+    if (!chatIdSelecionado) {
+        cardResumo.classList.add('hidden');
+        detalhesDiv.innerHTML = "";
+        return;
+    }
 
-    <!-- Header Institucional -->
-    <header class="border-b border-rose-100 bg-white/90 backdrop-blur sticky top-0 z-50 shadow-xs">
-        <div class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-rose-50 text-rose-600 p-2.5 rounded-2xl border border-rose-200/60 shadow-xs">
-                    <i class="fa-solid fa-brain text-lg"></i>
+    // Filtra todos os registros da paciente selecionada
+    const registros = dadosPacientesGlobais.filter(item => item.chatId === chatIdSelecionado);
+    
+    if (registros.length === 0) {
+        cardResumo.classList.remove('hidden');
+        detalhesDiv.innerHTML = `<p class='text-stone-500 italic py-2 text-center'>Nenhum registro na Bússola encontrado para esta paciente ainda.</p>`;
+        return;
+    }
+
+    // Pega os últimos 3 registros (ordenados do mais recente para o mais antigo)
+    const ultimos = registros.slice(-3).reverse();
+
+    let htmlResumo = `
+        <div class="flex justify-between items-center mb-2 pb-1 border-b border-rose-200/60">
+            <span class="font-bold text-stone-800">Total de registros: ${registros.length}</span>
+            <span class="text-[10px] text-rose-600 font-mono">Mostrando os últimos ${ultimos.length}</span>
+        </div>
+        <div class="space-y-2">
+    `;
+
+    ultimos.forEach(reg => {
+        // Cores dinâmicas baseadas no nível de ansiedade
+        let corAnsiedade = "text-emerald-600 bg-emerald-50";
+        if (reg.ansiedade >= 4) corAnsiedade = "text-rose-600 bg-rose-50 border border-rose-200";
+        else if (reg.ansiedade == 3) corAnsiedade = "text-amber-600 bg-amber-50";
+
+        htmlResumo += `
+            <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-2xs space-y-1.5">
+                <div class="flex justify-between items-center text-[11px]">
+                    <span class="font-mono font-bold text-rose-700">${reg.data} • ${reg.periodo}</span>
+                    <span class="px-2 py-0.5 rounded-md font-bold text-[10px] ${corAnsiedade}">Ansiedade: ${reg.ansiedade}/5</span>
                 </div>
-                <div>
-                    <h1 class="text-xs font-extrabold tracking-widest text-stone-900 uppercase">BÚSSOLA EMOCIONAL</h1>
-                    <p class="text-[11px] text-rose-600 font-semibold tracking-wider">@psi.amandaponzi</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-2.5">
-                <!-- Banner de Data menor e mais discreto -->
-                <span class="text-[10px] bg-rose-50/70 text-rose-700 px-2 py-0.5 rounded-full font-mono border border-rose-100" id="current-date">--/--</span>
                 
-                <!-- Botão PSI maior, elegante e com pulsação suave (Visível APENAS para a Dra. Amanda) -->
-                <button id="btn-abrir-painel" onclick="abrirPainelClinicoModal()" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 w-10 h-10 rounded-full border border-rose-200 items-center justify-center transition-all shadow-sm text-sm font-bold font-serif psi-breathing cursor-pointer" title="Painel Clínico (PSI)">
-                    Ψ
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navegação por Abas (Paciente) -->
-    <nav class="max-w-md w-full mx-auto px-4 pt-4">
-        <div class="grid grid-cols-3 gap-2 bg-[#f5f0eb] p-1.5 rounded-2xl border border-stone-200/60 text-xs font-bold">
-            <button onclick="switchTab('diaria')" id="btn-diaria" class="tab-btn py-2.5 rounded-xl transition-all bg-rose-600 text-white shadow-xs flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-compass"></i> Diário
-            </button>
-            <button onclick="switchTab('ancoragem')" id="btn-ancoragem" class="tab-btn py-2.5 rounded-xl transition-all text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-wind"></i> Ancoragem
-            </button>
-            <button onclick="switchTab('sobre')" id="btn-sobre" class="tab-btn py-2.5 rounded-xl transition-all text-stone-600 hover:text-stone-900 flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-user-doctor"></i> Contato
-            </button>
-        </div>
-    </nav>
-
-    <!-- Container Principal (Sempre Visão Paciente) -->
-    <main class="flex-grow max-w-md w-full mx-auto p-4 space-y-4">
-
-        <!-- TAB 1: DIÁRIO EMOCIONAL -->
-        <section id="tab-diaria" class="tab-content space-y-4">
-            <div class="bg-white border border-rose-100/80 rounded-2xl p-5 shadow-sm">
-                <div class="mb-4 pb-3 border-b border-stone-100">
-                    <h2 class="text-sm font-bold text-stone-900 flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-check text-rose-600"></i> Registro de Monitoramento
-                    </h2>
-                    <p class="text-xs text-stone-500 mt-0.5">Mapeie seus sentimentos, gatilhos e estratégias atuais.</p>
+                <div class="text-[11px] text-stone-600 grid grid-cols-2 gap-1 pt-1 border-t border-stone-100">
+                    <div><b>Humor:</b> ${reg.humor}/5</div>
+                    <div><b>Estresse:</b> ${reg.estresse}/5</div>
                 </div>
 
-                <form id="form-diario" onsubmit="enviarDiario(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Período do Registro</label>
-                        <select id="periodo" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                            <option value="Manhã">☀️ Manhã</option>
-                            <option value="Tarde" selected>🌤️ Tarde</option>
-                            <option value="Noite">🌙 Noite</option>
-                            <option value="Crise Aguda (Fora de hora)">⚡ Crise Aguda (Fora de hora)</option>
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-3.5 bg-[#fff1f2]/60 p-4 rounded-xl border border-rose-100">
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-stone-700">Ansiedade (1-5)</span>
-                                <span id="val-ansiedade" class="text-rose-600 font-mono font-bold">3/5</span>
-                            </div>
-                            <input type="range" min="1" max="5" value="3" id="ansiedade" oninput="updateVal('ansiedade', this.value)" class="w-full accent-rose-600 bg-rose-100 rounded-lg cursor-pointer h-2">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-stone-700">Humor / Energia (1-5)</span>
-                                <span id="val-humor" class="text-emerald-600 font-mono font-bold">3/5</span>
-                            </div>
-                            <input type="range" min="1" max="5" value="3" id="humor" oninput="updateVal('humor', this.value)" class="w-full accent-emerald-600 bg-rose-100 rounded-lg cursor-pointer h-2">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-stone-700">Estresse (1-5)</span>
-                                <span id="val-estresse" class="text-amber-600 font-mono font-bold">3/5</span>
-                            </div>
-                            <input type="range" min="1" max="5" value="3" id="estresse" oninput="updateVal('estresse', this.value)" class="w-full accent-amber-600 bg-rose-100 rounded-lg cursor-pointer h-2">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Gatilho Principal</label>
-                        <select id="gatilho" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                            <option value="Trabalho / Estudos">💼 Trabalho / Estudos</option>
-                            <option value="Família / Relacionamentos">🏠 Família / Relacionamentos</option>
-                            <option value="Finanças">💰 Finanças</option>
-                            <option value="Saúde / Corpo">🩺 Saúde / Corpo</option>
-                            <option value="Preocupação com o Futuro">💭 Preocupação com o Futuro</option>
-                            <option value="Sem motivo aparente">🧩 Sem motivo aparente</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Sintoma Físico Predominante</label>
-                        <select id="sintoma" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                            <option value="Nenhum sintoma físico">✨ Nenhum sintoma físico</option>
-                            <option value="Aperto no peito / Falta de ar">🫁 Aperto no peito / Falta de ar</option>
-                            <option value="Coração acelerado (Taquicardia)">💓 Coração acelerado (Taquicardia)</option>
-                            <option value="Nó na garganta / Tensão muscular">🧘‍♂️ Nó na garganta / Tensão muscular</option>
-                            <option value="Mente acelerada (Pensamentos a mil)">🌪️ Mente acelerada (Pensamentos a mil)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Estratégia de Enfrentamento</label>
-                        <select id="estrategia" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                            <option value="Técnica de Respiração / Ancoragem">🌬️ Técnica de Respiração / Ancoragem</option>
-                            <option value="Mudei de ambiente / Fui caminhar">🚶‍♀️ Mudei de ambiente / Fui caminhar</option>
-                            <option value="Conversei com alguém de confiança">💬 Conversei com alguém</option>
-                            <option value="Distração (Música, série, jogo)">🎧 Distração (Música, série)</option>
-                            <option value="Paralisi / Evitei a situação">🛡️ Paralisei / Evitei a situação</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Pensamento / Notas (Opcional)</label>
-                        <textarea id="notas" rows="2" placeholder="O que passou pela sua cabeça neste momento?" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl p-3 text-sm text-stone-800 focus:outline-none focus:border-rose-400 resize-none"></textarea>
-                    </div>
-
-                    <button type="submit" id="btn-submit" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide cursor-pointer">
-                        Registrar na Bússola 🎯
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- TAB 2: ANCORAGEM -->
-        <section id="tab-ancoragem" class="tab-content hidden space-y-4">
-            <div class="bg-white border border-rose-100/80 rounded-2xl p-6 text-center space-y-5 shadow-sm">
-                <div>
-                    <h2 class="text-base font-bold text-stone-900 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-lungs text-rose-500"></i> Laboratório de Calma
-                    </h2>
-                    <p class="text-xs text-stone-500 mt-1">Sincronize sua respiração para regular o sistema nervoso.</p>
-                </div>
-                <div class="flex justify-center my-6">
-                    <div class="w-40 h-40 rounded-full bg-rose-50 border-2 border-rose-200 flex flex-col items-center justify-center breathing-box shadow-md shadow-rose-100">
-                        <span id="breathing-text" class="text-xs font-bold uppercase tracking-wider text-rose-600">Inspira...</span>
-                        <span id="breathing-timer" class="text-2xl font-mono font-bold text-stone-800 mt-1">4s</span>
-                    </div>
-                </div>
-                <div class="bg-[#fff1f2]/50 p-4 rounded-xl border border-rose-100 text-left space-y-2.5">
-                    <h3 class="text-xs font-bold text-rose-700 uppercase tracking-wide">Técnica de Aterramento 5-4-3-2-1</h3>
-                    <p class="text-xs text-stone-600 leading-relaxed">
-                        Identifique mentalmente ao seu redor:<br>
-                        • <b class="text-stone-800">5</b> coisas que você vê<br>
-                        • <b class="text-stone-800">4</b> coisas que pode tocar<br>
-                        • <b class="text-stone-800">3</b> sons que ouve<br>
-                        • <b class="text-stone-800">2</b> cheiros que sente<br>
-                        • <b class="text-stone-800">1</b> sabor presente.
-                    </p>
+                <div class="text-[11px] text-stone-700 space-y-0.5 pt-1">
+                    <div>🎯 <b>Gatilho:</b> ${reg.gatilho}</div>
+                    <div>🫁 <b>Sintoma:</b> ${reg.sintoma}</div>
+                    <div>🛡️ <b>Estratégia:</b> ${reg.estrategia}</div>
+                    ${reg.notas ? `<div class="italic text-stone-500 bg-stone-50 p-1.5 rounded-lg mt-1">"${reg.notas}"</div>` : ''}
                 </div>
             </div>
-        </section>
+        `;
+    });
 
-        <!-- TAB 3: CONTATO -->
-        <section id="tab-sobre" class="tab-content hidden space-y-4">
-            <div class="bg-white border border-rose-100/80 rounded-2xl p-6 text-center space-y-4 shadow-sm">
-                <div class="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto border border-rose-200 text-rose-600 text-xl font-extrabold shadow-xs">
-                    AP
-                </div>
-                <div>
-                    <h2 class="text-base font-bold text-stone-900">Dra. Amanda Ponzi</h2>
-                    <p class="text-xs text-rose-600 font-semibold mt-0.5">Psicóloga Clínica • CRP Ativo</p>
-                </div>
-                <p class="text-xs text-stone-600 leading-relaxed px-1">
-                    Este WebApp auxilia no acompanhamento terapêutico contínuo, transformando seus registros diários em direcionamentos valiosos para as sessões.
-                </p>
-                <a href="https://wa.me/" target="_blank" class="inline-flex items-center justify-center gap-2 w-full bg-[#fbbf24] hover:bg-[#f59e0b] text-stone-900 text-xs font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10">
-                    <i class="fa-brands fa-whatsapp text-sm"></i> Falar com a Psicóloga
-                </a>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- MODAL DO PAINEL CLÍNICO (Abre por cima quando clica no botão PSI) -->
-    <div id="modal-clinico" class="fixed inset-0 bg-stone-900/60 backdrop-blur-2xs z-50 hidden flex flex-col justify-end sm:justify-center p-2 sm:p-4">
-        <div class="bg-[#fdfbf7] w-full max-w-md mx-auto rounded-3xl p-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-rose-100 space-y-4 animate-in fade-in duration-200">
-            <div class="flex justify-between items-center pb-3 border-b border-stone-200">
-                <h2 class="text-sm font-bold text-stone-900 flex items-center gap-2">
-                    <i class="fa-solid fa-stethoscope text-rose-600"></i> Painel Clínico & Prontuário
-                </h2>
-                <button onclick="fecharPainelClinicoModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-all cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <!-- Conteúdo do Painel Clínico -->
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-xs text-stone-500">Acompanhamento dos registros das pacientes.</p>
-                    <button onclick="carregarDadosTerapeuta()" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-semibold border border-rose-200 transition-all cursor-pointer">
-                        <i class="fa-solid fa-rotate"></i> Atualizar
-                    </button>
-                </div>
-
-                <!-- Seletor de Paciente -->
-                <div>
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Selecione a Paciente</label>
-                    <select id="select-paciente" onchange="exibirResumoPaciente()" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                        <option value="">Carregando pacientes...</option>
-                    </select>
-                </div>
-
-                <!-- Resumo dos Registros da Paciente -->
-                <div id="paciente-resumo-card" class="hidden bg-[#fff1f2]/60 p-4 rounded-xl border border-rose-100 space-y-2.5 text-xs">
-                    <h3 class="font-bold text-rose-700 uppercase tracking-wide flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-line"></i> Últimos Registros na Bússola
-                    </h3>
-                    <div id="resumo-detalhes" class="text-stone-700 space-y-1">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </div>
-
-                <!-- Bloco de Notas da Sessão (Prontuário) -->
-                <div class="space-y-2 pt-2 border-t border-stone-100">
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">Anotações da Sessão (Prontuário)</label>
-                    <textarea id="notas-sessao" rows="4" placeholder="Escreva aqui a evolução, insights e direcionamentos..." class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl p-3 text-sm text-stone-800 focus:outline-none focus:border-rose-400 resize-none transition-colors"></textarea>
-                    
-                    <button onclick="salvarProntuario()" id="btn-salvar-prontuario" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide cursor-pointer">
-                        💾 Salvar Prontuário na Planilha
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rodapé -->
-    <footer class="text-center py-4 text-[10px] text-stone-400 border-t border-stone-200 font-mono">
-        Bússola Emocional • Protegido por Sigilo Profissional
-    </footer>
-
-    <!-- Lógica JavaScript Unificada -->
-    <script>
-        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwzDKSQlf4BppvGX83gV3zDMHahAyyK0h2AfRvvfALScdF201ZggDhlaGXqPO7GSwDo/exec";
-        const TELEGRAM_ID_DRA_AMANDA = "7202627825"; 
-
-        let dadosPacientesGlobais = [];
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const options = { weekday: 'short', day: 'numeric', month: 'short' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('pt-BR', options);
-            
-            verificarUsuarioEAjustarInterface();
-        });
-
-        function verificarUsuarioEAjustarInterface() {
-            const tg = window.Telegram?.WebApp;
-            let userId = "";
-
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                userId = tg.initDataUnsafe.user.id.toString();
-            } else {
-                userId = localStorage.getItem('psi_chatid') || "";
-            }
-
-            // Exibe o botão PSI pulsante no header SOMENTE para a Dra. Amanda
-            if (userId === TELEGRAM_ID_DRA_AMANDA) {
-                const btnPsi = document.getElementById('btn-abrir-painel');
-                btnPsi.classList.remove('hidden');
-                btnPsi.classList.add('flex');
-            }
-        }
-
-        function abrirPainelClinicoModal() {
-            document.getElementById('modal-clinico').classList.remove('hidden');
-            carregarDadosTerapeuta();
-        }
-
-        function fecharPainelClinicoModal() {
-            document.getElementById('modal-clinico').classList.add('hidden');
-        }
-
-        async function carregarDadosTerapeuta() {
-            const select = document.getElementById('select-paciente');
-            select.innerHTML = '<option value="">Atualizando dados da planilha...</option>';
-
-            try {
-                const response = await fetch(WEBHOOK_URL + '?action=getPacientesData');
-                const data = await response.json();
-                dadosPacientesGlobais = data;
-
-                const pacientesMap = {};
-                data.forEach(item => {
-                    if (item.chatId && item.nome) {
-                        pacientesMap[item.chatId] = item.nome;
-                    }
-                });
-
-                select.innerHTML = '<option value="">Selecione uma paciente...</option>';
-                for (const [chatId, nome] of Object.entries(pacientesMap)) {
-                    select.innerHTML += `<option value="${chatId}">${nome}</option>`;
-                }
-
-                if (Object.keys(pacientesMap).length === 0) {
-                    select.innerHTML = '<option value="">Nenhum registro encontrado ainda</option>';
-                }
-            } catch (err) {
-                console.error(err);
-                select.innerHTML = '<option value="">Erro ao carregar pacientes</option>';
-            }
-        }
-
-        function exibirResumoPaciente() {
-            const chatIdSelecionado = document.getElementById('select-paciente').value;
-            const cardResumo = document.getElementById('paciente-resumo-card');
-            const detalhesDiv = document.getElementById('resumo-detalhes');
-
-            if (!chatIdSelecionado) {
-                cardResumo.classList.add('hidden');
-                return;
-            }
-
-            const registros = dadosPacientesGlobais.filter(item => item.chatId === chatIdSelecionado);
-            if (registros.length === 0) {
-                cardResumo.classList.add('hidden');
-                return;
-            }
-
-            let htmlResumo = `<p class='font-semibold text-stone-800 mb-1'>Total de registros: ${registros.length}</p>`;
-            const ultimos = registros.slice(-3).reverse();
-
-            ultimos.forEach(reg => {
-                htmlResumo += `
-                    <div class="bg-white p-2 rounded-lg border border-rose-100 mb-1.5 shadow-2xs">
-                        <span class="font-mono text-rose-600 font-bold">${reg.data} (${reg.periodo})</span><br>
-                        • Ansiedade: <b>${reg.ansiedade}/5</b> | Humor: <b>${reg.humor}/5</b> | Estresse: <b>${reg.estresse}/5</b><br>
-                        • Gatilho: <b>${reg.gatilho}</b><br>
-                        • Sintoma: <b>${reg.sintoma}</b><br>
-                        ${reg.notasPaciente ? `• Nota: "${reg.notasPaciente}"` : ''}
-                    </div>
-                `;
-            });
-
-            detalhesDiv.innerHTML = htmlResumo;
-            cardResumo.classList.remove('hidden');
-        }
-
-        async function salvarProntuario() {
-            const select = document.getElementById('select-paciente');
-            const chatId = select.value;
-            const nomePaciente = select.options[select.selectedIndex]?.text;
-            const notas = document.getElementById('notas-sessao').value;
-            const btn = document.getElementById('btn-salvar-prontuario');
-
-            if (!chatId) {
-                alert("Selecione uma paciente antes de salvar o prontuário.");
-                return;
-            }
-            if (!notas.trim()) {
-                alert("Escreva alguma anotação no prontuário antes de salvar.");
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = "Salvando prontuário...";
-
-            const registros = dadosPacientesGlobais.filter(item => item.chatId === chatId);
-            const ultimoReg = registros[registros.length - 1] || {};
-            const resumoBussola = `Último: ${ultimoReg.data || '-'} | Ans: ${ultimoReg.ansiedade || '-'}/5 | Gatilho: ${ultimoReg.gatilho || '-'}`;
-
-            const payload = {
-                tipo: 'prontuario',
-                dataAtendimento: new Date().toLocaleDateString('pt-BR'),
-                chatId: chatId,
-                nomePaciente: nomePaciente,
-                resumoBussola: resumoBussola,
-                notasDaSessao: notas
-            };
-
-            try {
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-
-                alert("✨ Prontuário e anotações da sessão salvos com sucesso na planilha!");
-                document.getElementById('notas-sessao').value = "";
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao salvar o prontuário. Tente novamente.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "💾 Salvar Prontuário na Planilha";
-            }
-        }
-
-        // Funções da Paciente
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-rose-600', 'text-white', 'shadow-xs');
-                el.classList.add('text-stone-600');
-            });
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.remove('text-stone-600');
-            activeBtn.classList.add('bg-rose-600', 'text-white', 'shadow-xs');
-        }
-
-        function updateVal(id, val) {
-            document.getElementById('val-' + id).innerText = val + '/5';
-        }
-
-        function getUserInfo() {
-            const tg = window.Telegram?.WebApp;
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                return {
-                    nome: tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? ' ' + tg.initDataUnsafe.user.last_name : ''),
-                    chatId: tg.initDataUnsafe.user.id.toString()
-                };
-            }
-            let localId = localStorage.getItem('psi_chatid');
-            let localName = localStorage.getItem('psi_nome');
-            if (!localId) {
-                localId = 'web_' + Math.floor(Math.random() * 1000000);
-                localStorage.setItem('psi_chatid', localId);
-            }
-            if (!localName) {
-                localName = prompt("Digite seu primeiro nome para salvar os registros na Bússola:") || "Paciente Web";
-                localStorage.setItem('psi_nome', localName);
-            }
-            return { nome: localName, chatId: localId };
-        }
-
-        async function enviarDiario(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerText = "Salvando registro...";
-
-            const user = getUserInfo();
-            const agora = new Date();
-
-            const payload = {
-                data: agora.toLocaleDateString('pt-BR'),
-                horario: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                nome: user.nome,
-                chatId: user.chatId,
-                periodo: document.getElementById('periodo').value,
-                ansiedade: document.getElementById('ansiedade').value,
-                humor: document.getElementById('humor').value,
-                estresse: document.getElementById('estresse').value,
-                gatilho: document.getElementById('gatilho').value,
-                sintoma: document.getElementById('sintoma').value,
-                estrategia: document.getElementById('estrategia').value,
-                notas: document.getElementById('notas').value
-            };
-
-            try {
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                
-                alert("✨ Registro salvo com sucesso na sua Bússola Emocional!");
-                document.getElementById('form-diario').reset();
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao enviar o registro. Tente novamente.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Registrar na Bússola 🎯";
-            }
-        }
-
-        let breathStep = 0;
-        const steps = [
-            { text: "Inspira...", time: 4, color: "text-rose-600" },
-            { text: "Segura...", time: 4, color: "text-amber-600" },
-            { text: "Expira...", time: 4, color: "text-emerald-600" },
-            { text: "Pausa...", time: 2, color: "text-stone-600" }
-        ];
-
-        function runBreathing() {
-            const current = steps[breathStep];
-            const textEl = document.getElementById('breathing-text');
-            const timerEl = document.getElementById('breathing-timer');
-            if (textEl && timerEl) {
-                textEl.innerText = current.text;
-                textEl.className = "text-xs font-bold uppercase tracking-wider " + current.color;
-                timerEl.innerText = current.time + "s";
-            }
-            breathStep = (breathStep + 1) % steps.length;
-        }
-        setInterval(runBreathing, 4000);
-    </script>
-</body>
-</html>
+    htmlResumo += `</div>`;
+    detalhesDiv.innerHTML = htmlResumo;
+    cardResumo.classList.remove('hidden');
+}
