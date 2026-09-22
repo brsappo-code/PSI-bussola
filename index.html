@@ -256,12 +256,23 @@
                 </div>
 
                 <!-- Seletor de Paciente -->
-                <div>
-                    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Selecione a Paciente</label>
-                    <select id="select-paciente" onchange="exibirResumoPaciente()" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
-                        <option value="">Carregando pacientes...</option>
-                    </select>
-                </div>
+             <!-- Seletor de Paciente -->
+<div>
+    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Selecione a Paciente</label>
+    <select id="select-paciente" onchange="exibirResumoPaciente()" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm text-stone-800 focus:outline-none focus:border-rose-400">
+        <option value="">Carregando pacientes...</option>
+    </select>
+</div>
+                <!-- Novo: Seletor de Período de Análise -->
+<div class="mt-3">
+    <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Período de Análise</label>
+    <select id="select-periodo-analise" onchange="exibirResumoPaciente()" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl px-3.5 py-2.5 text-xs text-stone-800 focus:outline-none focus:border-rose-400">
+        <option value="7">📅 Últimos 7 dias (Semana)</option>
+        <option value="15">📅 Últimos 15 dias</option>
+        <option value="30">📅 Último mês (30 dias)</option>
+        <option value="todos">♾️ Todo o histórico</option>
+    </select>
+</div>
 
                 <!-- Resumo dos Registros da Paciente -->
                 <div id="paciente-resumo-card" class="hidden bg-[#fff1f2]/60 p-4 rounded-xl border border-rose-100 space-y-2.5 text-xs">
@@ -359,116 +370,155 @@
             }
         }
 
-        function exibirResumoPaciente() {
-            const chatIdSelecionado = document.getElementById('select-paciente').value;
-            const cardResumo = document.getElementById('paciente-resumo-card');
-            const detalhesDiv = document.getElementById('resumo-detalhes');
+// Função auxiliar para converter a data do formato BR ("DD/MM/AAAA") para objeto Date
+function parseDataBR(dataStr) {
+    if (!dataStr) return new Date(0);
+    const partes = dataStr.split('/');
+    if (partes.length === 3) {
+        return new Date(partes[2], partes[1] - 1, partes[0]);
+    }
+    return new Date(dataStr);
+}
 
-            if (!chatIdSelecionado) {
-                cardResumo.classList.add('hidden');
-                detalhesDiv.innerHTML = "";
-                return;
-            }
+// Nova função de resumo com quantificação por período
+function exibirResumoPaciente() {
+    const chatIdSelecionado = document.getElementById('select-paciente').value;
+    const periodoFiltro = document.getElementById('select-periodo-analise').value;
+    const cardResumo = document.getElementById('paciente-resumo-card');
+    const detalhesDiv = document.getElementById('resumo-detalhes');
 
-            const registros = dadosPacientesGlobais.filter(item => item.chatId === chatIdSelecionado);
-            
-            if (registros.length === 0) {
-                cardResumo.classList.remove('hidden');
-                detalhesDiv.innerHTML = `<p class='text-stone-500 italic py-2 text-center'>Nenhum registro na Bússola encontrado para esta paciente ainda.</p>`;
-                return;
-            }
+    if (!chatIdSelecionado) {
+        cardResumo.classList.add('hidden');
+        detalhesDiv.innerHTML = "";
+        return;
+    }
 
-            const ultimos = registros.slice(-3).reverse();
+    const todosRegistros = dadosPacientesGlobais.filter(item => item.chatId === chatIdSelecionado);
+    
+    if (todosRegistros.length === 0) {
+        cardResumo.classList.remove('hidden');
+        detalhesDiv.innerHTML = `<p class='text-stone-500 italic py-2 text-center'>Nenhum registro na Bússola encontrado para esta paciente ainda.</p>`;
+        return;
+    }
 
-            let htmlResumo = `
-                <div class="flex justify-between items-center mb-2 pb-1 border-b border-rose-200/60">
-                    <span class="font-bold text-stone-800">Total de registros: ${registros.length}</span>
-                    <span class="text-[10px] text-rose-600 font-mono">Últimos ${ultimos.length}</span>
+    // Filtrar por período escolhido (7, 15, 30 dias ou todos)
+    let registros = todosRegistros;
+    if (periodoFiltro !== "todos") {
+        const dias = parseInt(periodoFiltro);
+        const limiteData = new Date();
+        limiteData.setDate(limiteData.getDate() - dias);
+        
+        registros = todosRegistros.filter(reg => parseDataBR(reg.data) >= limiteData);
+    }
+
+    if (registros.length === 0) {
+        cardResumo.classList.remove('hidden');
+        detalhesDiv.innerHTML = `<p class='text-stone-500 italic py-2 text-center'>Nenhum registro encontrado no período selecionado (${periodoFiltro} dias).</p>`;
+        return;
+    }
+
+    // --- CÁLCULOS / QUANTIFICAÇÃO ---
+    const total = registros.length;
+    let somaAnsiedade = 0, somaHumor = 0, somaEstresse = 0;
+    const contGatilhos = {};
+    const contSintomas = {};
+    const contEstrategias = {};
+
+    registros.forEach(reg => {
+        somaAnsiedade += Number(reg.ansiedade || 0);
+        somaHumor += Number(reg.humor || 0);
+        somaEstresse += Number(reg.estresse || 0);
+
+        if (reg.gatilho) contGatilhos[reg.gatilho] = (contGatilhos[reg.gatilho] || 0) + 1;
+        if (reg.sintoma) contSintomas[reg.sintoma] = (contSintomas[reg.sintoma] || 0) + 1;
+        if (reg.estrategia) contEstrategias[reg.estrategia] = (contEstrategias[reg.estrategia] || 0) + 1;
+    });
+
+    const mediaAnsiedade = (somaAnsiedade / total).toFixed(1);
+    const mediaHumor = (somaHumor / total).toFixed(1);
+    const mediaEstresse = (somaEstresse / total).toFixed(1);
+
+    const ordenarContagem = (obj) => Object.entries(obj).sort((a, b) => b[1] - a[1]);
+
+    const topGatilhos = ordenarContagem(contGatilhos);
+    const topSintomas = ordenarContagem(contSintomas);
+
+    // --- MONTANDO O HTML DO PAINEL ---
+    let htmlResumo = `
+        <div class="space-y-3">
+            <!-- Cabeçalho com Médias -->
+            <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-2xs space-y-2">
+                <div class="flex justify-between items-center text-[11px] pb-2 border-b border-stone-100">
+                    <span class="font-bold text-stone-800">📊 Resumo Quantitativo</span>
+                    <span class="text-[10px] text-rose-600 font-mono bg-rose-50 px-2 py-0.5 rounded-md">${total} registro(s)</span>
                 </div>
-                <div class="space-y-2">
-            `;
-
-            ultimos.forEach(reg => {
-                let corAnsiedade = "text-emerald-600 bg-emerald-50";
-                if (reg.ansiedade >= 4) corAnsiedade = "text-rose-600 bg-rose-50 border border-rose-200";
-                else if (reg.ansiedade == 3) corAnsiedade = "text-amber-600 bg-amber-50";
-
-                htmlResumo += `
-                    <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-2xs space-y-1.5">
-                        <div class="flex justify-between items-center text-[11px]">
-                            <span class="font-mono font-bold text-rose-700">${reg.data} • ${reg.periodo}</span>
-                            <span class="px-2 py-0.5 rounded-md font-bold text-[10px] ${corAnsiedade}">Ansiedade: ${reg.ansiedade}/5</span>
-                        </div>
-                        
-                        <div class="text-[11px] text-stone-600 grid grid-cols-2 gap-1 pt-1 border-t border-stone-100">
-                            <div><b>Humor:</b> ${reg.humor}/5</div>
-                            <div><b>Estresse:</b> ${reg.estresse}/5</div>
-                        </div>
-
-                        <div class="text-[11px] text-stone-700 space-y-0.5 pt-1">
-                            <div>🎯 <b>Gatilho:</b> ${reg.gatilho}</div>
-                            <div>🫁 <b>Sintoma:</b> ${reg.sintoma}</div>
-                            <div>🛡️ <b>Estratégia:</b> ${reg.estrategia}</div>
-                            ${reg.notas ? `<div class="italic text-stone-500 bg-stone-50 p-1.5 rounded-lg mt-1">"${reg.notas}"</div>` : ''}
-                        </div>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-rose-50/60 p-2 rounded-lg border border-rose-100">
+                        <span class="block text-[10px] text-stone-500 uppercase font-semibold">Ansiedade Média</span>
+                        <span class="text-sm font-bold text-rose-700 font-mono">${mediaAnsiedade}</span>
                     </div>
-                `;
-            });
+                    <div class="bg-emerald-50/60 p-2 rounded-lg border border-emerald-100">
+                        <span class="block text-[10px] text-stone-500 uppercase font-semibold">Humor Médio</span>
+                        <span class="text-sm font-bold text-emerald-700 font-mono">${mediaHumor}</span>
+                    </div>
+                    <div class="bg-amber-50/60 p-2 rounded-lg border border-amber-100">
+                        <span class="block text-[10px] text-stone-500 uppercase font-semibold">Estresse Médio</span>
+                        <span class="text-sm font-bold text-amber-700 font-mono">${mediaEstresse}</span>
+                    </div>
+                </div>
+            </div>
 
-            htmlResumo += `</div>`;
-            detalhesDiv.innerHTML = htmlResumo;
-            cardResumo.classList.remove('hidden');
-        }
+            <!-- Frequências (Gatilhos e Sintomas) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-2xs space-y-1">
+                    <span class="text-[11px] font-bold text-stone-800 flex items-center gap-1">
+                        <i class="fa-solid fa-bolt text-rose-600"></i> Principais Gatilhos
+                    </span>
+                    <ul class="text-[11px] text-stone-600 space-y-0.5 pt-1">
+                        ${topGatilhos.map(([gatilho, qtd]) => `<li>• ${gatilho}: <b class="text-stone-800">${qtd}x</b></li>`).join('')}
+                    </ul>
+                </div>
 
-        async function salvarProntuario() {
-            const select = document.getElementById('select-paciente');
-            const chatId = select.value;
-            const nomePaciente = select.options[select.selectedIndex]?.text;
-            const notas = document.getElementById('notas-sessao').value;
-            const btn = document.getElementById('btn-salvar-prontuario');
+                <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-2xs space-y-1">
+                    <span class="text-[11px] font-bold text-stone-800 flex items-center gap-1">
+                        <i class="fa-solid fa-heart-pulse text-rose-600"></i> Sintomas Físicos
+                    </span>
+                    <ul class="text-[11px] text-stone-600 space-y-0.5 pt-1">
+                        ${topSintomas.map(([sintoma, qtd]) => `<li>• ${sintoma}: <b class="text-stone-800">${qtd}x</b></li>`).join('')}
+                    </ul>
+                </div>
+            </div>
 
-            if (!chatId) {
-                alert("Selecione uma paciente antes de salvar o prontuário.");
-                return;
-            }
-            if (!notas.trim()) {
-                alert("Escreva alguma anotação no prontuário antes de salvar.");
-                return;
-            }
+            <!-- Últimos Registros Detalhados -->
+            <div class="space-y-1.5 pt-1">
+                <span class="text-[11px] font-bold text-stone-700 uppercase tracking-wider block">Diários Recentes no Período</span>
+    `;
 
-            btn.disabled = true;
-            btn.innerText = "Salvando prontuário...";
+    const ultimos = registros.slice(-3).reverse();
+    ultimos.forEach(reg => {
+        let corAnsiedade = "text-emerald-600 bg-emerald-50";
+        if (reg.ansiedade >= 4) corAnsiedade = "text-rose-600 bg-rose-50 border border-rose-200";
+        else if (reg.ansiedade == 3) corAnsiedade = "text-amber-600 bg-amber-50";
 
-            const registros = dadosPacientesGlobais.filter(item => item.chatId === chatId);
-            const ultimoReg = registros[registros.length - 1] || {};
-            const resumoBussola = `Último: ${ultimoReg.data || '-'} | Ans: ${ultimoReg.ansiedade || '-'}/5 | Gatilho: ${ultimoReg.gatilho || '-'}`;
+        htmlResumo += `
+            <div class="bg-white p-2.5 rounded-xl border border-rose-100 shadow-2xs space-y-1">
+                <div class="flex justify-between items-center text-[10px]">
+                    <span class="font-mono font-bold text-rose-700">${reg.data} • ${reg.periodo}</span>
+                    <span class="px-2 py-0.5 rounded-md font-bold text-[9px] ${corAnsiedade}">Ansiedade: ${reg.ansiedade}/5</span>
+                </div>
+                <div class="text-[10px] text-stone-700 space-y-0.5">
+                    <div>🎯 <b>Gatilho:</b> ${reg.gatilho} | 🫁 <b>Sintoma:</b> ${reg.sintoma}</div>
+                    <div>🛡️ <b>Estratégia:</b> ${reg.estrategia}</div>
+                    ${reg.notas ? `<div class="italic text-stone-500 bg-stone-50 p-1 rounded mt-1">"${reg.notas}"</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
 
-            const payload = {
-                tipo: 'prontuario',
-                dataAtendimento: new Date().toLocaleDateString('pt-BR'),
-                chatId: chatId,
-                nomePaciente: nomePaciente,
-                resumoBussola: resumoBussola,
-                notasDaSessao: notas
-            };
-
-            try {
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-
-                alert("✨ Prontuário e anotações da sessão salvos com sucesso na planilha!");
-                document.getElementById('notas-sessao').value = "";
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao salvar o prontuário. Tente novamente.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "💾 Salvar Prontuário na Planilha";
-            }
-        }
+    htmlResumo += `</div></div>`;
+    detalhesDiv.innerHTML = htmlResumo;
+    cardResumo.classList.remove('hidden');
+}
 
         // Funções da Paciente
         function switchTab(tabId) {
