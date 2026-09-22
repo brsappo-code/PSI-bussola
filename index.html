@@ -37,6 +37,15 @@
         .breathing-box {
             animation: pulse-gentle 6s infinite ease-in-out;
         }
+
+        /* Animação de respiração suave para o Botão PSI */
+        @keyframes psi-breathing {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.2); }
+            50% { transform: scale(1.08); box-shadow: 0 0 12px 3px rgba(225, 29, 72, 0.25); }
+        }
+        .psi-breathing {
+            animation: psi-breathing 4s infinite ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-[#fdfbf7] text-stone-800 min-h-screen flex flex-col font-sans antialiased">
@@ -54,11 +63,12 @@
                 </div>
             </div>
             
-            <div class="flex items-center space-x-2">
-                <span class="text-xs bg-rose-50 text-rose-700 px-3 py-1 rounded-full font-mono border border-rose-100" id="current-date">--/--</span>
+            <div class="flex items-center space-x-2.5">
+                <!-- Banner de Data menor e mais discreto -->
+                <span class="text-[10px] bg-rose-50/70 text-rose-700 px-2 py-0.5 rounded-full font-mono border border-rose-100" id="current-date">--/--</span>
                 
-                <!-- Botão Discreto e Elegante com símbolo PSI (Visível APENAS para a Dra. Amanda) -->
-                <button id="btn-abrir-painel" onclick="abrirPainelClinicoModal()" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 w-8 h-8 rounded-full border border-rose-200/80 items-center justify-center transition-all shadow-2xs text-xs font-bold font-serif" title="Painel Clínico (PSI)">
+                <!-- Botão PSI maior, elegante e com pulsação suave (Visível APENAS para a Dra. Amanda) -->
+                <button id="btn-abrir-painel" onclick="abrirPainelClinicoModal()" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-700 w-10 h-10 rounded-full border border-rose-200 items-center justify-center transition-all shadow-sm text-sm font-bold font-serif psi-breathing cursor-pointer" title="Painel Clínico (PSI)">
                     Ψ
                 </button>
             </div>
@@ -167,7 +177,7 @@
                         <textarea id="notas" rows="2" placeholder="O que passou pela sua cabeça neste momento?" class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl p-3 text-sm text-stone-800 focus:outline-none focus:border-rose-400 resize-none"></textarea>
                     </div>
 
-                    <button type="submit" id="btn-submit" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide">
+                    <button type="submit" id="btn-submit" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide cursor-pointer">
                         Registrar na Bússola 🎯
                     </button>
                 </form>
@@ -231,7 +241,7 @@
                 <h2 class="text-sm font-bold text-stone-900 flex items-center gap-2">
                     <i class="fa-solid fa-stethoscope text-rose-600"></i> Painel Clínico & Prontuário
                 </h2>
-                <button onclick="fecharPainelClinicoModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-all">
+                <button onclick="fecharPainelClinicoModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-all cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -240,7 +250,7 @@
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
                     <p class="text-xs text-stone-500">Acompanhamento dos registros das pacientes.</p>
-                    <button onclick="carregarDadosTerapeuta()" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-semibold border border-rose-200 transition-all">
+                    <button onclick="carregarDadosTerapeuta()" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-semibold border border-rose-200 transition-all cursor-pointer">
                         <i class="fa-solid fa-rotate"></i> Atualizar
                     </button>
                 </div>
@@ -268,7 +278,7 @@
                     <label class="block text-xs font-semibold text-stone-700 uppercase tracking-wider">Anotações da Sessão (Prontuário)</label>
                     <textarea id="notas-sessao" rows="4" placeholder="Escreva aqui a evolução, insights e direcionamentos..." class="w-full bg-[#fdfbf7] border border-stone-200 rounded-xl p-3 text-sm text-stone-800 focus:outline-none focus:border-rose-400 resize-none transition-colors"></textarea>
                     
-                    <button onclick="salvarProntuario()" id="btn-salvar-prontuario" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide">
+                    <button onclick="salvarProntuario()" id="btn-salvar-prontuario" class="w-full bg-[#fbbf24] hover:bg-[#f59e0b] active:scale-[0.99] text-stone-900 font-extrabold py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/10 text-sm tracking-wide cursor-pointer">
                         💾 Salvar Prontuário na Planilha
                     </button>
                 </div>
@@ -305,7 +315,7 @@
                 userId = localStorage.getItem('psi_chatid') || "";
             }
 
-            // Exibe o botão PSI discreto no header SOMENTE para a Dra. Amanda
+            // Exibe o botão PSI pulsante no header SOMENTE para a Dra. Amanda
             if (userId === TELEGRAM_ID_DRA_AMANDA) {
                 const btnPsi = document.getElementById('btn-abrir-painel');
                 btnPsi.classList.remove('hidden');
